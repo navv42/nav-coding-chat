@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { prism } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -168,7 +168,7 @@ Format your answers with proper headers, paragraphs, and code blocks where appro
                       style={prism}
                       language={className?.replace("language-", "") || ""}
                       PreTag="div"
-                      {...props}
+                      // {...props}
                     >
                       {String(children).trim()}
                     </SyntaxHighlighter>
