@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-// Validate environment variable
-if (!process.env.GLHF_API_KEY) {
-  throw new Error("Missing GLHF_API_KEY environment variable");
-}
-
-// Initialize client outside request handler
-const client = new OpenAI({
-  apiKey: process.env.GLHF_API_KEY,
-  baseURL: "https://glhf.chat/api/openai/v1",
-});
-
 export async function POST(request: Request) {
+  // Validate environment variable
+  if (!process.env.GLHF_API_KEY) {
+    throw new Error("Missing GLHF_API_KEY environment variable");
+  }
+
+  // Initialize client outside request handler
+  const client = new OpenAI({
+    apiKey: process.env.GLHF_API_KEY,
+    baseURL: "https://glhf.chat/api/openai/v1",
+  });
   try {
     // Input validation
     if (!request.body) {
@@ -37,7 +36,10 @@ export async function POST(request: Request) {
     const validatedTemp = temperature ?? 0.7; // Default if undefined
     const validatedTopP = top_p ?? 0.9; // Default if undefined
 
-    if (typeof validatedTemp !== 'number' || typeof validatedTopP !== 'number') {
+    if (
+      typeof validatedTemp !== "number" ||
+      typeof validatedTopP !== "number"
+    ) {
       return NextResponse.json(
         { error: "temperature and top_p must be numbers" },
         { status: 400 }
@@ -73,20 +75,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ response: fullResponse });
     } catch (apiError: any) {
       console.error("API Error:", apiError);
-      
+
       // Handle specific API errors
       if (apiError.response) {
         return NextResponse.json(
-          { 
+          {
             error: "API Error",
-            details: apiError.response.data 
-          }, 
+            details: apiError.response.data,
+          },
           { status: apiError.response.status || 500 }
         );
       }
 
       // Handle network errors
-      if (apiError.code === 'ECONNREFUSED' || apiError.code === 'ECONNRESET') {
+      if (apiError.code === "ECONNREFUSED" || apiError.code === "ECONNRESET") {
         return NextResponse.json(
           { error: "Failed to connect to API" },
           { status: 503 }
@@ -97,14 +99,17 @@ export async function POST(request: Request) {
     }
   } catch (error: any) {
     console.error("Error in API route:", error);
-    
+
     // Return a more detailed error response
-    return NextResponse.json({
-      error: "Error generating response",
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    }, { 
-      status: 500 
-    });
+    return NextResponse.json(
+      {
+        error: "Error generating response",
+        message: error.message,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }
