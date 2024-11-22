@@ -26,11 +26,10 @@ Format your answers with proper headers, paragraphs, and code blocks where appro
   const [showPromptSettings, setShowPromptSettings] = useState(false);
 
   const handleSubmit = async () => {
-    let userMessage:string = prompt + userQuestion;
-
+    let userMessage: string = prompt + userQuestion;
     console.log("FULL PROMPT \n", userMessage);
     setLoading(true);
-    setResponse(null);
+    setResponse("");  // Start with empty string instead of null
 
     try {
       const res = await fetch("/api/chat", {
@@ -38,7 +37,7 @@ Format your answers with proper headers, paragraphs, and code blocks where appro
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           userMessage,
           systemPrompt,
           temperature,
@@ -50,8 +49,23 @@ Format your answers with proper headers, paragraphs, and code blocks where appro
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const data = await res.json();
-      setResponse(data.response);
+      if (!res.body) {
+        throw new Error("Response body is null");
+      }
+
+      // Read the streaming response
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        // Decode the chunk and update the response
+        const chunk = decoder.decode(value);
+        setResponse(prev => (prev || "") + chunk);
+      }
     } catch (error) {
       console.error("Error fetching API:", error);
       setResponse("An error occurred. Please try again.");
@@ -150,12 +164,13 @@ Format your answers with proper headers, paragraphs, and code blocks where appro
 
       {/* Right Side: Response */}
       <div className="w-1/2 p-8">
-        {loading && (
+        {loading && !response && (
           <div className="flex items-center justify-center h-full">
             <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
           </div>
         )}
-        {!loading && response && (
+        {/* Show response even while loading */}
+        {response && (
           <div className="p-1 rounded border-gray-300 markdown">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -168,7 +183,6 @@ Format your answers with proper headers, paragraphs, and code blocks where appro
                       style={prism}
                       language={className?.replace("language-", "") || ""}
                       PreTag="div"
-                      // {...props}
                     >
                       {String(children).trim()}
                     </SyntaxHighlighter>
