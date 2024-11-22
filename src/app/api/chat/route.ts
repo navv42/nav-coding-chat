@@ -11,6 +11,7 @@ export async function POST(request: Request) {
   const client = new OpenAI({
     apiKey: process.env.GLHF_API_KEY,
     baseURL: "https://glhf.chat/api/openai/v1",
+    timeout: 10000,
   });
   try {
     // Input validation
